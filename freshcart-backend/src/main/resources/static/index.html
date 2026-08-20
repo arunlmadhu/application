@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FreshCart | Fresh Vegetables &amp; Fruits</title>
+<meta name="description" content="FreshCart - Buy fresh vegetables and fruits online. Farm fresh, hand-picked, delivered to your door." />
+
+<!-- ============================================================
+     PRODUCTION NOTE:
+     This app uses React + Babel via CDN so it can run as a pure
+     static site with NO npm install / build step. This is ideal
+     for quickly hosting on S3, Netlify, GitHub Pages, Azure
+     Static Web Apps, etc. For a large production app, you would
+     normally pre-compile JSX with a bundler (Vite/CRA) for better
+     performance, but that requires a Node build step which you
+     said you cannot run. This CDN approach needs zero dependency
+     installation - just upload the files as-is.
+     ============================================================ -->
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥦</text></svg>" />
+<link rel="stylesheet" href="css/style.css" />
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+
+<noscript>
+  <div style="padding:40px;font-family:sans-serif;text-align:center;">
+    FreshCart requires JavaScript to be enabled in your browser to run.
+  </div>
+</noscript>
+
+<div id="root"></div>
+
+<script type="text/babel" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: freshcart-backend
+  labels:
+    app: freshcart-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: freshcart-backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: freshcart-backend
+    spec:
+      containers:
+        - name: freshcart-backend
+          # Replace with your pushed image, e.g. ECR:
+          # <account-id>.dkr.ecr.<region>.amazonaws.com/freshcart-backend:latest
+          image: freshcart-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            # Explicitly pin the port the app listens on. The prod profile
+            # defaults PORT to 5000 (Elastic Beanstalk's convention) if
+            # unset, which would not match the Dockerfile's EXPOSE 8080 /
+            # the probes and Service below, so it's set here on purpose.
+            - name: PORT
+              value: "8080"
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: freshcart-backend-secrets
+                  key: spring-datasource-url
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: freshcart-backend-secrets
+                  key: spring-datasource-username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: freshcart-backend-secrets
+                  key: spring-datasource-password
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: freshcart-backend-secrets
+                  key: jwt-secret
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: freshcart-backend-secrets
+                  key: admin-email
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: freshcart-backend-secrets
+                  key: admin-password
+            - name: CORS_ALLOWED_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: freshcart-backend-config
+                  key: cors-allowed-origins
+            - name: JWT_EXPIRATION_MS
+              valueFrom:
+                configMapKeyRef:
+                  name: freshcart-backend-config
+                  key: jwt-expiration-ms
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+          # Actuator is on the classpath (spring-boot-starter-actuator) and
+          # health,info are exposed in application.yml, so /actuator/health
+          # is reachable without extra config.
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            failureThreshold: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            failureThreshold: 3
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: freshcart-backend-config
+data:
+  # Comma-separated list, e.g. https://your-cloudfront-domain.cloudfront.net
+  cors-allowed-origins: "https://your-frontend-domain.example"
+  jwt-expiration-ms: "86400000"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: freshcart-backend-secrets
+type: Opaque
+stringData:
+  # Fill these in (or better, create the Secret out-of-band with kubectl /
+  # your secrets manager and delete this template block from source control).
+  spring-datasource-url: "jdbc:mysql://<rds-endpoint>:3306/freshcart?useSSL=true&serverTimezone=UTC"
+  spring-datasource-username: "freshcart_app"
+  spring-datasource-password: "CHANGE_ME"
+  jwt-secret: "CHANGE_ME_32_BYTES_MIN"
+  admin-email: "admin@yourcompany.com"
+  admin-password: "CHANGE_ME"

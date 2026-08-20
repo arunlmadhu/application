@@ -1,0 +1,46 @@
+# Activated on AWS with SPRING_PROFILES_ACTIVE=prod
+# All values are supplied via environment variables so no secrets live in
+# source control - set these in Elastic Beanstalk / ECS task env config,
+# ideally sourced from AWS Secrets Manager or Parameter Store.
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}          # e.g. jdbc:mysql://<rds-endpoint>:3306/freshcart?useSSL=true&serverTimezone=UTC
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      # "update" auto-creates/updates tables on boot - convenient for this demo.
+      # For real production use, switch to Flyway/Liquibase migrations and set
+      # this to "validate" instead.
+      ddl-auto: update
+    show-sql: false
+    database-platform: org.hibernate.dialect.MySQLDialect
+    open-in-view: false
+
+  h2:
+    console:
+      enabled: false
+
+server:
+  port: ${PORT:5000}           # Elastic Beanstalk's Corretto platform proxies to port 5000 by default
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}   # e.g. https://your-cloudfront-domain.cloudfront.net
+  admin:
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
+
+logging:
+  level:
+    com.freshcart.backend: INFO
+    org.springframework.security: WARN

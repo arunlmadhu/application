@@ -1,0 +1,31 @@
+version: 0.2
+
+# Optional: use this if you wire up AWS CodePipeline/CodeBuild for CI/CD.
+# Not required for a simple `eb deploy` — see README-DEPLOY.md.
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto17
+  pre_build:
+    commands:
+      - echo "Running tests..."
+      - mvn -B test
+  build:
+    commands:
+      - echo "Building jar with Maven..."
+      - mvn -B clean package -DskipTests
+  post_build:
+    commands:
+      - echo "Build complete. Artifact at target/freshcart-backend.jar"
+
+artifacts:
+  files:
+    - target/freshcart-backend.jar
+    - Procfile
+    - .ebextensions/**/*
+  discard-paths: no
+
+cache:
+  paths:
+    - '/root/.m2/**/*'

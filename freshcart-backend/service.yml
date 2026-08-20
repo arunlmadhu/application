@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: freshcart-backend
+  labels:
+    app: freshcart-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: freshcart-backend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
